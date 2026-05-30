@@ -1,6 +1,8 @@
 /**
- * Configuration Firebase — copiez en config.js et remplissez vos clés.
- * Firebase Console → Paramètres du projet → Vos applications → Config
+ * Copiez ce fichier en config.js pour le développement local.
+ * config.js est ignoré par Git — ne jamais le committer.
+ *
+ * Sur Vercel : les variables d'environnement génèrent config.js au déploiement.
  */
 window.PFF_CONFIG = {
   firebase: {
@@ -10,9 +12,8 @@ window.PFF_CONFIG = {
     storageBucket: 'votre-projet.appspot.com',
     messagingSenderId: '123456789',
     appId: '1:123456789:web:abcdef',
+    measurementId: 'G-XXXXXXXXXX',
   },
-
-  /** E-mails autorisés pour l'admin (doivent exister dans Firebase Auth) */
   adminEmails: [
     'admin@trevixia.com',
   ],

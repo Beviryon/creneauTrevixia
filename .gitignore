@@ -13,6 +13,10 @@ desktop.ini
 *.log
 .env
 .env.*
+.env.local
+
+# Secrets Firebase (jamais committer)
+config.js
 
 # Dépendances (si ajoutées plus tard)
 node_modules/
