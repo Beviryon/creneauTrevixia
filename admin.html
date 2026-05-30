@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Administration — Réservations PFF Trevixia Academy">
+  <title>Admin — Réservations PFF</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-admin">
+  <header class="topbar">
+    <div class="topbar__brand">
+      <img src="logo-academy.png" alt="TREVIXIA Academy" class="topbar__logo" width="140" height="36">
+    </div>
+    <nav class="topbar__nav" aria-label="Navigation principale">
+      <a href="https://trevi-training.vercel.app/" class="topbar__link" target="_blank" rel="noopener noreferrer">Nos formations</a>
+      <a href="index.html" class="btn btn--ghost btn--sm">Réservation</a>
+    </nav>
+  </header>
+
+  <!-- Écran de connexion admin (non indexé, URL directe uniquement) -->
+  <main id="admin-gate" class="admin-gate layout">
+    <section class="panel admin-gate__panel">
+      <header class="panel__head">
+        <span class="panel__step" aria-hidden="true">🔒</span>
+        <h1 class="panel__title">Accès administration</h1>
+      </header>
+      <div class="panel__body">
+        <p class="admin-gate__text">Cette page est réservée aux organisateurs. Saisissez le code d'accès.</p>
+        <form id="admin-login-form" class="admin-gate__form">
+          <div class="form-group">
+            <label for="admin-pin" class="form-label">Code d'accès</label>
+            <input type="password" id="admin-pin" class="form-input" autocomplete="current-password" required placeholder="••••••••••">
+          </div>
+          <p id="admin-login-error" class="alert alert--error" hidden role="alert"></p>
+          <button type="submit" class="btn btn--primary btn--block btn--lg">Se connecter</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Tableau de bord (visible après authentification) -->
+  <main id="admin-dashboard" class="app-container app-container--admin" hidden>
+    <header class="admin-header">
+      <div class="admin-header__row">
+        <div>
+          <h1 class="admin-header__title">Administration PFF</h1>
+          <p class="admin-header__subtitle">Communication Digitale et du Community Management</p>
+        </div>
+        <button type="button" id="admin-logout" class="btn btn--ghost btn--sm">Déconnexion</button>
+      </div>
+    </header>
+
+    <section class="stats-grid" aria-label="Statistiques">
+      <article class="stat-card">
+        <span class="stat-card__value" id="stat-total">0</span>
+        <span class="stat-card__label">Créneaux réservés</span>
+      </article>
+      <article class="stat-card stat-card--success">
+        <span class="stat-card__value" id="stat-available">24</span>
+        <span class="stat-card__label">Créneaux disponibles</span>
+      </article>
+      <article class="stat-card stat-card--accent">
+        <span class="stat-card__value" id="stat-rate">0%</span>
+        <span class="stat-card__label">Taux de remplissage</span>
+      </article>
+    </section>
+
+    <section class="card admin-section" aria-labelledby="grid-title">
+      <h2 id="grid-title" class="card__title">Vue calendrier</h2>
+      <div id="admin-slots-grid" class="admin-slots-grid"></div>
+    </section>
+
+    <section class="card admin-section" aria-labelledby="table-title">
+      <div class="admin-section__header">
+        <h2 id="table-title" class="card__title">Liste des réservations</h2>
+        <button type="button" id="export-csv" class="btn btn--ghost btn--sm">Exporter CSV</button>
+      </div>
+      <div class="table-wrapper">
+        <table class="admin-table" id="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Créneau</th>
+              <th>Nom</th>
+              <th>E-mail</th>
+              <th>Marque</th>
+              <th>Date réservation</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body"></tbody>
+        </table>
+        <p id="admin-empty" class="admin-empty" hidden>Aucune réservation pour le moment.</p>
+      </div>
+    </section>
+
+    <footer class="page-footer page-footer--admin">
+      <button type="button" id="debug-reset" class="btn btn--debug">Réinitialiser les données (debug)</button>
+    </footer>
+  </main>
+
+  <div id="detail-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel">
+      <header class="modal__header">
+        <h2 id="modal-title" class="modal__title">Détail de la réservation</h2>
+        <button type="button" class="modal__close" data-close-modal aria-label="Fermer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+          </svg>
+        </button>
+      </header>
+      <div id="modal-content" class="modal__body"></div>
+      <footer class="modal__footer">
+        <a id="modal-email-link" href="#" class="btn btn--ghost btn--sm">Envoyer un e-mail</a>
+        <button type="button" class="btn btn--primary btn--sm" data-close-modal>Fermer</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

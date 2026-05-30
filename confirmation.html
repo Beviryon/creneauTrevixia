@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Votre créneau PFF est confirmé — Trevixia Academy">
+  <title>Confirmé — PFF Trevixia</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-confirmation">
+  <header class="topbar">
+    <div class="topbar__brand">
+      <img src="logo-academy.png" alt="TREVIXIA Academy" class="topbar__logo" width="140" height="36">
+    </div>
+    <nav class="topbar__nav" aria-label="Navigation principale">
+      <a href="https://trevi-training.vercel.app/" class="topbar__link" target="_blank" rel="noopener noreferrer">Nos formations</a>
+      <span class="topbar__badge topbar__badge--success">Confirmé</span>
+    </nav>
+  </header>
+
+  <main class="layout layout--confirm">
+    <section class="confirm-hero">
+      <div class="confirm-hero__icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h1 class="confirm-hero__title">C'est réservé !</h1>
+      <p class="confirm-hero__sub">Voici votre créneau de soutenance PFF</p>
+    </section>
+
+    <section class="ticket card" aria-labelledby="ticket-day">
+      <p class="ticket__label">Créneau</p>
+      <h2 id="ticket-day" class="ticket__day">—</h2>
+      <p id="ticket-time" class="ticket__time">—</p>
+      <dl id="ticket-details" class="ticket__details"></dl>
+    </section>
+
+    <section class="panel" aria-labelledby="tips-title">
+      <header class="panel__head">
+        <span class="panel__step panel__step--tips" aria-hidden="true">💡</span>
+        <h2 id="tips-title" class="panel__title">Préparer votre soutenance</h2>
+      </header>
+      <div class="panel__body">
+        <ol class="tips-compact">
+          <li><strong>Structure (10–15 min)</strong> — Marque, stratégie digitale, community management, conclusion.</li>
+          <li><strong>Support visuel</strong> — Slides épurées, identité cohérente avec votre marque fictive.</li>
+          <li><strong>Test technique</strong> — Connexion, micro, partage d'écran. Prévoyez une version offline.</li>
+          <li><strong>Community Management</strong> — Calendrier éditorial, exemples de posts, tone of voice.</li>
+          <li><strong>Questions jury</strong> — Anticipez KPIs, budget, choix de plateformes.</li>
+        </ol>
+      </div>
+    </section>
+
+    <aside class="panel panel--muted">
+      <p class="panel__note">Pour changer de créneau, annulez d'abord votre réservation ci-dessous.</p>
+      <button type="button" id="cancel-booking" class="btn btn--outline-danger btn--block">
+        Annuler ma réservation
+      </button>
+    </aside>
+  </main>
+
+  <script src="storage.js"></script>
+  <script src="confirmation.js"></script>
+</body>
+</html>

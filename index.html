@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Réservez votre créneau de soutenance PFF — Communication Digitale et Community Management, Trevixia Academy">
+  <title>Réservation PFF — Trevixia Academy</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-booking">
+  <header class="topbar">
+    <a href="index.html" class="topbar__brand">
+      <img src="logo-academy.png" alt="TREVIXIA Academy" class="topbar__logo" width="140" height="36">
+    </a>
+    <nav class="topbar__nav" aria-label="Navigation principale">
+      <a href="https://trevi-training.vercel.app/" class="topbar__link" target="_blank" rel="noopener noreferrer">Nos formations</a>
+      <span class="topbar__badge">PFF 2026</span>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <div class="layout__hero">
+      <h1 class="layout__title">Réserver un créneau</h1>
+      <p class="layout__course">Communication Digitale et du Community Management</p>
+    </div>
+
+    <div id="error-message" class="alert alert--error" role="alert" hidden></div>
+
+    <form id="reservation-form" class="booking-form" novalidate>
+      <!-- Étape 1 : Informations -->
+      <section class="panel" aria-labelledby="panel-info">
+        <header class="panel__head">
+          <span class="panel__step" aria-hidden="true">1</span>
+          <h2 id="panel-info" class="panel__title">Vos informations</h2>
+        </header>
+        <div class="panel__body">
+          <div class="form-stack">
+            <div class="form-group">
+              <label for="fullName" class="form-label">Nom complet <span class="required">*</span></label>
+              <input type="text" id="fullName" name="fullName" class="form-input" placeholder="Jean Dupont" autocomplete="name" required>
+            </div>
+            <div class="form-group">
+              <label for="email" class="form-label">Adresse e-mail <span class="required">*</span></label>
+              <input type="email" id="email" name="email" class="form-input" placeholder="jean.dupont@exemple.fr" autocomplete="email" required>
+            </div>
+            <div class="form-group">
+              <label for="brand" class="form-label">Marque fictive <span class="required">*</span></label>
+              <input type="text" id="brand" name="brand" class="form-input" placeholder="Ma Marque Fictive" required>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Étape 2 : Créneau -->
+      <section class="panel" aria-labelledby="panel-slots">
+        <header class="panel__head">
+          <span class="panel__step" aria-hidden="true">2</span>
+          <div class="panel__head-text">
+            <h2 id="panel-slots" class="panel__title">Choisissez un créneau</h2>
+            <span id="slots-counter" class="slots-counter" aria-live="polite">24 disponibles</span>
+          </div>
+        </header>
+        <div class="panel__body">
+          <div class="availability-bar" role="progressbar" aria-valuemin="0" aria-valuemax="24" aria-valuenow="24" id="availability-progress">
+            <div class="availability-bar__fill" id="availability-fill"></div>
+          </div>
+
+          <div id="day-tabs" class="day-tabs" role="tablist" aria-label="Jours disponibles"></div>
+
+          <fieldset class="slots-fieldset">
+            <legend class="visually-hidden">Créneaux horaires</legend>
+            <div id="slots-container" class="slot-list" role="radiogroup" aria-label="Créneaux de soutenance"></div>
+          </fieldset>
+        </div>
+      </section>
+
+      <!-- Submit desktop -->
+      <div class="form-actions form-actions--desktop">
+        <div id="selected-preview" class="selected-preview" hidden>
+          <span class="selected-preview__label">Sélection</span>
+          <p id="selected-preview-text" class="selected-preview__value"></p>
+        </div>
+        <button type="submit" class="btn btn--primary btn--lg">
+          Confirmer ma réservation
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <!-- Barre fixe mobile -->
+  <div class="sticky-bar" id="sticky-bar">
+    <div class="sticky-bar__info">
+      <span class="sticky-bar__label" id="sticky-label">Aucun créneau sélectionné</span>
+      <span class="sticky-bar__value" id="sticky-value"></span>
+    </div>
+    <button type="submit" form="reservation-form" class="btn btn--primary btn--sticky" id="sticky-submit" disabled>
+      Réserver
+    </button>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
