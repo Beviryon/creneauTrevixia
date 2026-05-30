@@ -44,7 +44,7 @@ function renderBooking() {
     .join('');
 }
 
-function handleCancelBooking() {
+async function handleCancelBooking() {
   const booking = PFFStorage.getMyBooking();
   if (!booking) {
     window.location.replace('index.html');
@@ -56,12 +56,16 @@ function handleCancelBooking() {
 
   if (!confirm(message)) return;
 
-  if (!PFFStorage.cancelMyBooking()) {
-    alert('Impossible d\'annuler. Réessayez.');
-    return;
+  try {
+    const ok = await PFFStorage.cancelMyBooking();
+    if (!ok) {
+      alert('Impossible d\'annuler. Réessayez.');
+      return;
+    }
+    window.location.replace('index.html');
+  } catch {
+    alert('Erreur de connexion. Réessayez.');
   }
-
-  window.location.replace('index.html');
 }
 
 document.addEventListener('DOMContentLoaded', () => {

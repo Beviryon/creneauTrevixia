@@ -379,6 +379,11 @@ body {
   font-weight: 600;
 }
 
+.slot-list--loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .slot-list__group {
   display: flex;
   flex-direction: column;
@@ -820,6 +825,13 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.admin-header__user {
+  font-size: 0.75rem;
+  color: var(--indigo-600);
+  margin-top: 0.25rem;
+  font-weight: 500;
 }
 
 .admin-gate {

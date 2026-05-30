@@ -1,5 +1,5 @@
 /**
- * PFF — Page administration
+ * PFF — Page administration (Firebase Auth)
  */
 'use strict';
 
@@ -16,9 +16,41 @@ function formatDate(iso) {
   });
 }
 
+function getAuth() {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(window.PFF_CONFIG.firebase);
+  }
+  return firebase.auth();
+}
+
+function getAdminEmails() {
+  return (window.PFF_CONFIG.adminEmails || []).map((e) => e.toLowerCase());
+}
+
+function isAdminUser(user) {
+  return Boolean(user && getAdminEmails().includes(user.email.toLowerCase()));
+}
+
+function authErrorMessage(code) {
+  const messages = {
+    'auth/invalid-email': 'Adresse e-mail invalide.',
+    'auth/user-disabled': 'Ce compte a été désactivé.',
+    'auth/user-not-found': 'Identifiants incorrects.',
+    'auth/wrong-password': 'Identifiants incorrects.',
+    'auth/invalid-credential': 'Identifiants incorrects.',
+    'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
+  };
+  return messages[code] || 'Connexion impossible. Vérifiez vos identifiants.';
+}
+
 const modal = document.getElementById('detail-modal');
 const modalContent = document.getElementById('modal-content');
 const modalEmailLink = document.getElementById('modal-email-link');
+const adminGate = document.getElementById('admin-gate');
+const adminDashboard = document.getElementById('admin-dashboard');
+const adminLoginForm = document.getElementById('admin-login-form');
+const adminLoginError = document.getElementById('admin-login-error');
+const adminUserEmail = document.getElementById('admin-user-email');
 
 function openDetailModal(reservation) {
   const parsed = PFFStorage.parseSlot(reservation.slot);
@@ -92,7 +124,6 @@ function renderSlotsGrid() {
       cell.setAttribute('role', 'button');
       cell.setAttribute('tabindex', '0');
       cell.setAttribute('aria-label', `Voir la réservation de ${reservation.fullName}`);
-      cell.dataset.slot = slot;
     }
 
     cell.innerHTML = `
@@ -195,10 +226,13 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
-function handleDebugReset() {
-  if (confirm('Réinitialiser toutes les réservations (localStorage) ?')) {
-    PFFStorage.clearAll();
+async function handleDebugReset() {
+  if (!confirm('Réinitialiser toutes les réservations ?')) return;
+  try {
+    await PFFStorage.clearAll();
     location.reload();
+  } catch {
+    alert('Erreur lors de la réinitialisation.');
   }
 }
 
@@ -212,62 +246,76 @@ function initModal() {
   });
 }
 
-function render() {
+async function render() {
+  await PFFStorage.init();
   const reservations = PFFStorage.getReservations();
   updateStats(reservations);
   renderSlotsGrid();
   renderTable();
 }
 
-const adminGate = document.getElementById('admin-gate');
-const adminDashboard = document.getElementById('admin-dashboard');
-const adminLoginForm = document.getElementById('admin-login-form');
-const adminLoginError = document.getElementById('admin-login-error');
-
-function showAdminGate() {
+function showAdminGate(message) {
   adminGate.hidden = false;
   adminDashboard.hidden = true;
-  PFFStorage.clearAdminSession();
+  adminUserEmail.hidden = true;
+  if (message) {
+    adminLoginError.textContent = message;
+    adminLoginError.hidden = false;
+  } else {
+    adminLoginError.hidden = true;
+  }
 }
 
-function showAdminDashboard() {
+function showAdminDashboard(user) {
   adminGate.hidden = true;
   adminDashboard.hidden = false;
-  render();
+  adminUserEmail.textContent = `Connecté : ${user.email}`;
+  adminUserEmail.hidden = false;
+  render().catch((err) => {
+    console.error(err);
+    alert('Impossible de charger les réservations.');
+  });
 }
 
-function handleAdminLogin(event) {
+async function handleAdminLogin(event) {
   event.preventDefault();
   adminLoginError.hidden = true;
 
-  const pin = document.getElementById('admin-pin').value;
-  if (!PFFStorage.verifyAdminPin(pin)) {
-    adminLoginError.textContent = 'Code incorrect. Accès refusé.';
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+
+  if (getAdminEmails().length === 0) {
+    adminLoginError.textContent = 'Aucun e-mail admin configuré dans config.js (adminEmails).';
     adminLoginError.hidden = false;
-    document.getElementById('admin-pin').value = '';
-    document.getElementById('admin-pin').focus();
     return;
   }
 
-  PFFStorage.setAdminAuthenticated();
-  document.getElementById('admin-pin').value = '';
-  showAdminDashboard();
+  try {
+    await getAuth().signInWithEmailAndPassword(email, password);
+  } catch (err) {
+    adminLoginError.textContent = authErrorMessage(err.code);
+    adminLoginError.hidden = false;
+  }
 }
 
-function handleAdminLogout() {
-  PFFStorage.clearAdminSession();
-  showAdminGate();
+async function handleAdminLogout() {
+  await getAuth().signOut();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   initModal();
   adminLoginForm.addEventListener('submit', handleAdminLogin);
 
-  if (PFFStorage.isAdminAuthenticated()) {
-    showAdminDashboard();
-  } else {
-    showAdminGate();
-  }
+  getAuth().onAuthStateChanged(async (user) => {
+    if (user && isAdminUser(user)) {
+      showAdminDashboard(user);
+    } else if (user) {
+      await getAuth().signOut();
+      showAdminGate('Ce compte n\'a pas les droits administrateur.');
+    } else {
+      showAdminGate();
+    }
+  });
 
   document.getElementById('admin-logout').addEventListener('click', handleAdminLogout);
   document.getElementById('export-csv').addEventListener('click', exportCSV);

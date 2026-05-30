@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Collection des réservations PFF
+    match /reservations/{slotId} {
+      // Tout le monde peut lire (afficher les créneaux pris)
+      allow read: if true;
+
+      // Création uniquement si le créneau n'existe pas encore
+      allow create: if !exists(/databases/$(database)/documents/reservations/$(slotId))
+        && request.resource.data.keys().hasAll(['slot', 'fullName', 'email', 'brand', 'createdAt'])
+        && request.resource.data.slot is string
+        && request.resource.data.fullName is string
+        && request.resource.data.email is string
+        && request.resource.data.brand is string;
+
+      // Pas de modification
+      allow update: if false;
+
+      // Suppression (annulation par l'étudiant ou reset admin)
+      allow delete: if true;
+    }
+
+    // Tout le reste : interdit
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

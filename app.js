@@ -244,25 +244,53 @@ function validateForm() {
   return { fullName, email, brand, slot: selectedSlot.value };
 }
 
-function handleSubmit(event) {
+function setLoading(loading) {
+  slotsContainer.classList.toggle('slot-list--loading', loading);
+  stickySubmit.disabled = loading || !getCheckedSlotValue();
+}
+
+function saveErrorMessage(code) {
+  const messages = {
+    SLOT_TAKEN: 'Ce créneau vient d\'être pris par un autre candidat. Choisissez-en un autre.',
+    EMAIL_TAKEN: 'Cette adresse e-mail a déjà une réservation active.',
+    NETWORK: 'Erreur de connexion au serveur. Vérifiez votre réseau et réessayez.',
+  };
+  showError(messages[code] || 'Impossible d\'enregistrer la réservation.');
+}
+
+async function handleSubmit(event) {
   event.preventDefault();
   hideError();
 
   const data = validateForm();
   if (!data) return;
 
-  if (!PFFStorage.saveReservation({
-    slot: data.slot,
-    fullName: data.fullName,
-    email: data.email,
-    brand: data.brand,
-  })) {
-    showError('Impossible d\'enregistrer. Vérifiez l\'espace de stockage.');
-    return;
-  }
+  stickySubmit.disabled = true;
+  stickySubmit.textContent = 'Envoi…';
 
-  PFFStorage.setMyBooking(data);
-  window.location.replace('confirmation.html');
+  try {
+    const result = await PFFStorage.saveReservation({
+      slot: data.slot,
+      fullName: data.fullName,
+      email: data.email,
+      brand: data.brand,
+    });
+
+    if (!result.ok) {
+      saveErrorMessage(result.error);
+      await renderAll(false);
+      return;
+    }
+
+    PFFStorage.setMyBooking(data);
+    window.location.replace('confirmation.html');
+  } catch (err) {
+    console.error(err);
+    showError('Erreur inattendue. Réessayez dans quelques instants.');
+  } finally {
+    stickySubmit.disabled = !getCheckedSlotValue();
+    stickySubmit.textContent = getCheckedSlotValue() ? 'Confirmer' : 'Réserver';
+  }
 }
 
 let resizeTimer;
@@ -271,13 +299,32 @@ function handleResize() {
   resizeTimer = setTimeout(() => renderAll(false), 150);
 }
 
-function init() {
+async function init() {
   if (PFFStorage.getMyBooking()) {
     window.location.replace('confirmation.html');
     return;
   }
 
-  renderAll();
+  setLoading(true);
+  try {
+    await PFFStorage.init();
+    if (!PFFStorage.isCloudModeActive()) {
+      console.warn('[PFF] Mode local — configurez Firebase dans config.js');
+    }
+    renderAll();
+    setInterval(async () => {
+      try {
+        await PFFStorage.refresh();
+        renderAll(false);
+      } catch { /* silencieux */ }
+    }, 30000);
+  } catch (err) {
+    console.error(err);
+    showError('Impossible de charger les créneaux. Rechargez la page.');
+  } finally {
+    setLoading(false);
+  }
+
   reservationForm.addEventListener('submit', handleSubmit);
   reservationForm.addEventListener('input', hideError);
   window.addEventListener('resize', handleResize);

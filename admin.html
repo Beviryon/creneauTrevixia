@@ -32,11 +32,15 @@
         <h1 class="panel__title">Accès administration</h1>
       </header>
       <div class="panel__body">
-        <p class="admin-gate__text">Cette page est réservée aux organisateurs. Saisissez le code d'accès.</p>
+        <p class="admin-gate__text">Connectez-vous avec votre compte administrateur Trevixia.</p>
         <form id="admin-login-form" class="admin-gate__form">
           <div class="form-group">
-            <label for="admin-pin" class="form-label">Code d'accès</label>
-            <input type="password" id="admin-pin" class="form-input" autocomplete="current-password" required placeholder="••••••••••">
+            <label for="admin-email" class="form-label">E-mail administrateur</label>
+            <input type="email" id="admin-email" class="form-input" autocomplete="username" required placeholder="admin@trevixia.com">
+          </div>
+          <div class="form-group">
+            <label for="admin-password" class="form-label">Mot de passe</label>
+            <input type="password" id="admin-password" class="form-input" autocomplete="current-password" required placeholder="••••••••">
           </div>
           <p id="admin-login-error" class="alert alert--error" hidden role="alert"></p>
           <button type="submit" class="btn btn--primary btn--block btn--lg">Se connecter</button>
@@ -52,6 +56,7 @@
         <div>
           <h1 class="admin-header__title">Administration PFF</h1>
           <p class="admin-header__subtitle">Communication Digitale et du Community Management</p>
+          <p id="admin-user-email" class="admin-header__user" hidden></p>
         </div>
         <button type="button" id="admin-logout" class="btn btn--ghost btn--sm">Déconnexion</button>
       </div>
@@ -124,6 +129,10 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
   <script src="storage.js"></script>
   <script src="admin.js"></script>
 </body>
