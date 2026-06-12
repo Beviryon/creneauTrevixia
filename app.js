@@ -252,6 +252,7 @@ function setLoading(loading) {
 function saveErrorMessage(code) {
   const messages = {
     SLOT_TAKEN: 'Ce créneau vient d\'être pris par un autre candidat. Choisissez-en un autre.',
+    SLOT_INVALID: 'Ce créneau n\'est plus disponible. Rechargez la page pour voir la nouvelle planification.',
     EMAIL_TAKEN: 'Cette adresse e-mail a déjà une réservation active.',
     NETWORK: 'Erreur de connexion au serveur. Vérifiez votre réseau et réessayez.',
   };

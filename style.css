@@ -668,6 +668,12 @@ body {
   border: 1px solid #fecaca;
 }
 
+.alert--success {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid #bbf7d0;
+}
+
 /* --- Footer --- */
 .page-footer {
   display: flex;
@@ -920,6 +926,25 @@ body {
 }
 
 .admin-section__header .card__title { margin-bottom: 0; }
+
+.admin-slots-config__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.admin-slots-config__textarea {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  margin-bottom: 0.875rem;
+}
+
+.admin-slots-config__actions {
+  display: flex;
+  justify-content: flex-end;
+}
 
 .admin-slots-grid {
   display: grid;

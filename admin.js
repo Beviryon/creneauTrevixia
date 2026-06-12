@@ -51,6 +51,9 @@ const adminDashboard = document.getElementById('admin-dashboard');
 const adminLoginForm = document.getElementById('admin-login-form');
 const adminLoginError = document.getElementById('admin-login-error');
 const adminUserEmail = document.getElementById('admin-user-email');
+const adminSlotsInput = document.getElementById('admin-slots-input');
+const adminSlotsMessage = document.getElementById('admin-slots-message');
+const adminSaveSlotsBtn = document.getElementById('admin-save-slots');
 
 function openDetailModal(reservation) {
   const parsed = PFFStorage.parseSlot(reservation.slot);
@@ -97,9 +100,10 @@ function closeDetailModal() {
 }
 
 function updateStats(reservations) {
+  const totalSlots = PFFStorage.TOTAL_SLOTS;
   const booked = reservations.length;
-  const available = PFFStorage.TOTAL_SLOTS - booked;
-  const rate = Math.round((booked / PFFStorage.TOTAL_SLOTS) * 100);
+  const available = Math.max(totalSlots - booked, 0);
+  const rate = totalSlots > 0 ? Math.round((booked / totalSlots) * 100) : 0;
 
   document.getElementById('stat-total').textContent = booked;
   document.getElementById('stat-available').textContent = available;
@@ -112,7 +116,7 @@ function renderSlotsGrid() {
   const reservationMap = new Map(reservations.map((r) => [r.slot, r]));
   grid.innerHTML = '';
 
-  PFFStorage.SLOTS.forEach((slot) => {
+  PFFStorage.getSlots().forEach((slot) => {
     const reservation = reservationMap.get(slot);
     const parsed = PFFStorage.parseSlot(slot);
     const isTaken = Boolean(reservation);
@@ -155,6 +159,25 @@ function renderSlotsGrid() {
 
     grid.appendChild(cell);
   });
+}
+
+function parseSlotsInput(value) {
+  const rows = value
+    .split(/\r?\n/)
+    .map((row) => row.trim())
+    .filter(Boolean);
+  return Array.from(new Set(rows));
+}
+
+function showSlotsMessage(message, isError) {
+  adminSlotsMessage.textContent = message;
+  adminSlotsMessage.hidden = false;
+  adminSlotsMessage.className = `alert ${isError ? 'alert--error' : 'alert--success'}`;
+}
+
+function renderSlotsEditor() {
+  adminSlotsInput.value = PFFStorage.getSlots().join('\n');
+  adminSlotsMessage.hidden = true;
 }
 
 function renderTable() {
@@ -252,6 +275,41 @@ async function render() {
   updateStats(reservations);
   renderSlotsGrid();
   renderTable();
+  renderSlotsEditor();
+}
+
+async function handleSaveSlots() {
+  const nextSlots = parseSlotsInput(adminSlotsInput.value);
+  if (nextSlots.length === 0) {
+    showSlotsMessage('Ajoutez au moins un créneau.', true);
+    return;
+  }
+
+  const reservations = PFFStorage.getReservations();
+  const reservedSlots = new Set(reservations.map((r) => r.slot));
+  const removedReserved = Array.from(reservedSlots).filter((slot) => !nextSlots.includes(slot));
+  if (removedReserved.length > 0) {
+    showSlotsMessage('Impossible de supprimer des créneaux déjà réservés. Annulez d\'abord ces réservations.', true);
+    return;
+  }
+
+  adminSaveSlotsBtn.disabled = true;
+  adminSaveSlotsBtn.textContent = 'Enregistrement…';
+  try {
+    const result = await PFFStorage.setSlots(nextSlots);
+    if (!result.ok) {
+      showSlotsMessage('Impossible d\'enregistrer les créneaux.', true);
+      return;
+    }
+    await render();
+    showSlotsMessage('Créneaux enregistrés avec succès.', false);
+  } catch (err) {
+    console.error(err);
+    showSlotsMessage('Erreur réseau lors de l\'enregistrement.', true);
+  } finally {
+    adminSaveSlotsBtn.disabled = false;
+    adminSaveSlotsBtn.textContent = 'Enregistrer les créneaux';
+  }
 }
 
 function showAdminGate(message) {
@@ -320,4 +378,5 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('admin-logout').addEventListener('click', handleAdminLogout);
   document.getElementById('export-csv').addEventListener('click', exportCSV);
   document.getElementById('debug-reset').addEventListener('click', handleDebugReset);
+  adminSaveSlotsBtn.addEventListener('click', handleSaveSlots);
 });

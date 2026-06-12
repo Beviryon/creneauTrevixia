@@ -105,6 +105,24 @@
       </div>
     </section>
 
+    <section class="card admin-section" aria-labelledby="slots-config-title">
+      <div class="admin-section__header">
+        <h2 id="slots-config-title" class="card__title">Configuration des créneaux</h2>
+      </div>
+      <p class="admin-slots-config__hint">Un créneau par ligne, format recommandé : <em>Jour Date – HHhMM à HHhMM</em>.</p>
+      <label for="admin-slots-input" class="form-label">Liste des créneaux</label>
+      <textarea
+        id="admin-slots-input"
+        class="form-input admin-slots-config__textarea"
+        rows="10"
+        placeholder="Exemple&#10;Lundi 10 Juin – 19h30 à 20h05&#10;Lundi 10 Juin – 20h10 à 20h45"
+      ></textarea>
+      <p id="admin-slots-message" class="alert" hidden role="status"></p>
+      <div class="admin-slots-config__actions">
+        <button type="button" id="admin-save-slots" class="btn btn--primary btn--sm">Enregistrer les créneaux</button>
+      </div>
+    </section>
+
     <footer class="page-footer page-footer--admin">
       <button type="button" id="debug-reset" class="btn btn--debug">Réinitialiser les données (debug)</button>
     </footer>

@@ -12,8 +12,11 @@ const PFFStorage = (function () {
   const STORAGE_KEY = 'pff_reservations';
   const MY_BOOKING_KEY = 'pff_my_booking';
   const COLLECTION = 'reservations';
+  const SETTINGS_COLLECTION = 'meta';
+  const SETTINGS_DOC_ID = 'slots_config';
+  const LOCAL_SLOTS_KEY = 'pff_slots_config';
 
-  const SLOTS = [
+  const DEFAULT_SLOTS = [
     'Dimanche 31 Mai – 19h30 à 20h05',
     'Dimanche 31 Mai – 20h10 à 20h45',
     'Dimanche 31 Mai – 20h50 à 21h25',
@@ -40,7 +43,7 @@ const PFFStorage = (function () {
     // 'Dimanche 7 Juin – 20h50 à 21h25',
   ];
 
-  const TOTAL_SLOTS = SLOTS.length;
+  let _slots = DEFAULT_SLOTS.slice();
 
   let _cache = [];
   let _initialized = false;
@@ -90,6 +93,30 @@ const PFFStorage = (function () {
     }
     _db = firebase.firestore();
     return _db;
+  }
+
+  function normalizeSlots(slots) {
+    if (!Array.isArray(slots)) return [];
+    const normalized = slots
+      .map((slot) => String(slot || '').trim())
+      .filter(Boolean);
+    return Array.from(new Set(normalized));
+  }
+
+  function getLocalSlots() {
+    try {
+      const raw = localStorage.getItem(LOCAL_SLOTS_KEY);
+      if (!raw) return DEFAULT_SLOTS.slice();
+      const parsed = JSON.parse(raw);
+      const slots = normalizeSlots(parsed);
+      return slots.length > 0 ? slots : DEFAULT_SLOTS.slice();
+    } catch {
+      return DEFAULT_SLOTS.slice();
+    }
+  }
+
+  function saveLocalSlots(slots) {
+    localStorage.setItem(LOCAL_SLOTS_KEY, JSON.stringify(slots));
   }
 
   /* --- localStorage (fallback) --- */
@@ -185,14 +212,33 @@ const PFFStorage = (function () {
     }
   }
 
+  async function fetchCloudSlots() {
+    const db = getDb();
+    const doc = await db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC_ID).get();
+    if (!doc.exists) return DEFAULT_SLOTS.slice();
+    const data = doc.data() || {};
+    const slots = normalizeSlots(data.slots);
+    return slots.length > 0 ? slots : DEFAULT_SLOTS.slice();
+  }
+
+  async function saveCloudSlots(slots) {
+    const db = getDb();
+    await db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC_ID).set({
+      slots,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+
   /* --- API publique --- */
 
   async function init() {
     if (_initialized) return;
     if (isCloudMode()) {
+      _slots = await fetchCloudSlots();
       _cache = await fetchCloudReservations();
       console.info('[PFF] Mode cloud Firebase actif');
     } else {
+      _slots = getLocalSlots();
       _cache = getLocalReservations();
       console.warn('[PFF] Mode localStorage — configurez Firebase dans config.js');
     }
@@ -212,7 +258,14 @@ const PFFStorage = (function () {
     return _cache;
   }
 
+  function getSlots() {
+    return _slots.slice();
+  }
+
   async function saveReservation(reservation) {
+    if (!_slots.includes(reservation.slot)) {
+      return { ok: false, error: 'SLOT_INVALID' };
+    }
     let result;
     if (isCloudMode()) {
       result = await saveCloudReservation(reservation);
@@ -270,7 +323,7 @@ const PFFStorage = (function () {
   function groupSlotsByDay() {
     const groups = [];
     const map = new Map();
-    SLOTS.forEach((slot, index) => {
+    _slots.forEach((slot, index) => {
       const { day } = parseSlot(slot);
       if (!map.has(day)) {
         const group = { day, slots: [] };
@@ -280,6 +333,22 @@ const PFFStorage = (function () {
       map.get(day).slots.push({ slot, index, parsed: parseSlot(slot) });
     });
     return groups;
+  }
+
+  async function setSlots(nextSlots) {
+    const normalized = normalizeSlots(nextSlots);
+    if (normalized.length === 0) {
+      return { ok: false, error: 'EMPTY_SLOTS' };
+    }
+
+    if (isCloudMode()) {
+      await saveCloudSlots(normalized);
+    } else {
+      saveLocalSlots(normalized);
+    }
+
+    _slots = normalized;
+    return { ok: true };
   }
 
   async function clearAll() {
@@ -319,11 +388,17 @@ const PFFStorage = (function () {
   }
 
   return {
-    SLOTS,
-    TOTAL_SLOTS,
+    get SLOTS() {
+      return _slots.slice();
+    },
+    get TOTAL_SLOTS() {
+      return _slots.length;
+    },
     init,
     refresh,
     getReservations,
+    getSlots,
+    setSlots,
     saveReservation,
     getMyBooking,
     setMyBooking,
