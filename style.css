@@ -1028,16 +1028,31 @@ body {
   white-space: nowrap;
 }
 
-.admin-slots-list__remove[disabled] {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .admin-slots-list__empty {
   margin: 0;
   padding: 1rem 0.875rem;
   font-size: 0.875rem;
   color: var(--muted);
+}
+
+.modal-warning__text {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--slate-700);
+  line-height: 1.5;
+}
+
+.modal-warning__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.modal-warning__list li {
+  margin-bottom: 0.35rem;
+  color: var(--slate-800);
+  font-size: 0.85rem;
 }
 
 .admin-slots-config__actions {

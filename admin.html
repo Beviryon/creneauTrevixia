@@ -164,6 +164,30 @@
     </div>
   </div>
 
+  <div id="delete-slots-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="delete-slots-title">
+    <div class="modal__backdrop" data-close-delete-modal></div>
+    <div class="modal__panel">
+      <header class="modal__header">
+        <h2 id="delete-slots-title" class="modal__title">Confirmer la suppression</h2>
+        <button type="button" class="modal__close" data-close-delete-modal aria-label="Fermer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+          </svg>
+        </button>
+      </header>
+      <div class="modal__body">
+        <p class="modal-warning__text">
+          Les créneaux suivants sont déjà réservés. En confirmant, les réservations associées seront supprimées définitivement.
+        </p>
+        <ul id="delete-slots-list" class="modal-warning__list"></ul>
+      </div>
+      <footer class="modal__footer">
+        <button type="button" id="delete-slots-cancel" class="btn btn--ghost btn--sm" data-close-delete-modal>Annuler</button>
+        <button type="button" id="delete-slots-confirm" class="btn btn--primary btn--sm">Oui, supprimer et enregistrer</button>
+      </footer>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>

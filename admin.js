@@ -46,6 +46,9 @@ function authErrorMessage(code) {
 const modal = document.getElementById('detail-modal');
 const modalContent = document.getElementById('modal-content');
 const modalEmailLink = document.getElementById('modal-email-link');
+const deleteSlotsModal = document.getElementById('delete-slots-modal');
+const deleteSlotsList = document.getElementById('delete-slots-list');
+const deleteSlotsConfirmBtn = document.getElementById('delete-slots-confirm');
 const adminGate = document.getElementById('admin-gate');
 const adminDashboard = document.getElementById('admin-dashboard');
 const adminLoginForm = document.getElementById('admin-login-form');
@@ -62,6 +65,7 @@ const adminSaveSlotsBtn = document.getElementById('admin-save-slots');
 const adminClearSlotsBtn = document.getElementById('admin-clear-slots');
 
 let adminSlotsDraft = [];
+let deleteSlotsModalResolver = null;
 
 function openDetailModal(reservation) {
   const parsed = PFFStorage.parseSlot(reservation.slot);
@@ -105,6 +109,40 @@ function openDetailModal(reservation) {
 function closeDetailModal() {
   modal.hidden = true;
   document.body.classList.remove('modal-open');
+}
+
+function closeDeleteSlotsModal(confirmed) {
+  if (deleteSlotsModal.hidden) return;
+  deleteSlotsModal.hidden = true;
+  document.body.classList.remove('modal-open');
+  if (deleteSlotsModalResolver) {
+    const resolve = deleteSlotsModalResolver;
+    deleteSlotsModalResolver = null;
+    resolve(Boolean(confirmed));
+  }
+}
+
+function requestDeleteSlotsConfirmation(slots) {
+  const maxVisible = 6;
+  deleteSlotsList.innerHTML = '';
+  slots.slice(0, maxVisible).forEach((slot) => {
+    const li = document.createElement('li');
+    li.textContent = slot;
+    deleteSlotsList.appendChild(li);
+  });
+  if (slots.length > maxVisible) {
+    const li = document.createElement('li');
+    li.textContent = `…et ${slots.length - maxVisible} autre(s)`;
+    deleteSlotsList.appendChild(li);
+  }
+
+  deleteSlotsModal.hidden = false;
+  document.body.classList.add('modal-open');
+  deleteSlotsConfirmBtn.focus();
+
+  return new Promise((resolve) => {
+    deleteSlotsModalResolver = resolve;
+  });
 }
 
 function updateStats(reservations) {
@@ -231,19 +269,20 @@ function renderSlotsDraftList() {
       </div>
       <div class="admin-slots-list__actions">
         ${isReserved ? '<span class="admin-slots-list__badge">Réservé</span>' : ''}
-        <button type="button" class="btn btn--ghost btn--sm admin-slots-list__remove" data-slot="${escapeHtml(slot)}" ${isReserved ? 'disabled aria-disabled="true" title="Créneau réservé"' : ''}>
+        <button type="button" class="btn btn--ghost btn--sm admin-slots-list__remove" data-slot="${escapeHtml(slot)}">
           Supprimer
         </button>
       </div>
     `;
-
-    if (!isReserved) {
-      row.querySelector('.admin-slots-list__remove').addEventListener('click', () => {
-        adminSlotsDraft = adminSlotsDraft.filter((value) => value !== slot);
-        renderSlotsDraftList();
+    row.querySelector('.admin-slots-list__remove').addEventListener('click', () => {
+      adminSlotsDraft = adminSlotsDraft.filter((value) => value !== slot);
+      renderSlotsDraftList();
+      if (isReserved) {
+        showSlotsMessage('Créneau réservé retiré de la liste. La réservation liée sera supprimée à l\'enregistrement.', false);
+      } else {
         showSlotsMessage('Créneau retiré de la liste.', false);
-      });
-    }
+      }
+    });
 
     adminSlotsList.appendChild(row);
   });
@@ -344,8 +383,14 @@ function initModal() {
     el.addEventListener('click', closeDetailModal);
   });
 
+  deleteSlotsModal.querySelectorAll('[data-close-delete-modal]').forEach((el) => {
+    el.addEventListener('click', () => closeDeleteSlotsModal(false));
+  });
+  deleteSlotsConfirmBtn.addEventListener('click', () => closeDeleteSlotsModal(true));
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !modal.hidden) closeDetailModal();
+    if (e.key === 'Escape' && !deleteSlotsModal.hidden) closeDeleteSlotsModal(false);
   });
 }
 
@@ -398,21 +443,8 @@ function handleSlotBuilderSubmit(event) {
 }
 
 function handleClearSlots() {
-  const reservedSlots = getReservedSlotsSet();
   if (adminSlotsDraft.length === 0) {
     showSlotsMessage('La liste est déjà vide.', true);
-    return;
-  }
-
-  if (reservedSlots.size > 0) {
-    const reservedOnly = adminSlotsDraft.filter((slot) => reservedSlots.has(slot));
-    if (reservedOnly.length === adminSlotsDraft.length) {
-      showSlotsMessage('Tous les créneaux actuels sont réservés, aucun créneau ne peut être retiré.', true);
-      return;
-    }
-    adminSlotsDraft = reservedOnly;
-    renderSlotsDraftList();
-    showSlotsMessage('Seuls les créneaux réservés ont été conservés.', false);
     return;
   }
 
@@ -431,14 +463,27 @@ async function handleSaveSlots() {
   const reservations = PFFStorage.getReservations();
   const reservedSlots = new Set(reservations.map((r) => r.slot));
   const removedReserved = Array.from(reservedSlots).filter((slot) => !nextSlots.includes(slot));
-  if (removedReserved.length > 0) {
-    showSlotsMessage('Impossible de supprimer des créneaux déjà réservés. Annulez d\'abord ces réservations.', true);
-    return;
-  }
 
   adminSaveSlotsBtn.disabled = true;
   adminSaveSlotsBtn.textContent = 'Enregistrement…';
   try {
+    if (removedReserved.length > 0) {
+      const confirmDelete = await requestDeleteSlotsConfirmation(removedReserved);
+      if (!confirmDelete) {
+        showSlotsMessage('Enregistrement annulé.', true);
+        return;
+      }
+      const deleteResult = await PFFStorage.deleteReservationsBySlots(removedReserved);
+      if (!deleteResult.ok) {
+        if (deleteResult.error === 'PERMISSION') {
+          showSlotsMessage('Permissions insuffisantes pour supprimer les réservations liées.', true);
+        } else {
+          showSlotsMessage('Impossible de supprimer les réservations liées.', true);
+        }
+        return;
+      }
+    }
+
     const result = await PFFStorage.setSlots(nextSlots);
     if (!result.ok) {
       if (result.error === 'PERMISSION') {

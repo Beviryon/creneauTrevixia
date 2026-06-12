@@ -216,6 +216,25 @@ const PFFStorage = (function () {
     }
   }
 
+  async function deleteCloudReservationsBySlots(slots) {
+    const db = getDb();
+    const target = new Set(slots);
+    if (target.size === 0) return 0;
+
+    const snap = await db.collection(COLLECTION).get();
+    const docsToDelete = snap.docs.filter((doc) => target.has(doc.data().slot));
+    if (docsToDelete.length === 0) return 0;
+
+    const batchSize = 400;
+    for (let i = 0; i < docsToDelete.length; i += batchSize) {
+      const batch = db.batch();
+      docsToDelete.slice(i, i + batchSize).forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+
+    return docsToDelete.length;
+  }
+
   async function fetchCloudSlots() {
     try {
       const db = getDb();
@@ -371,6 +390,33 @@ const PFFStorage = (function () {
     return { ok: true };
   }
 
+  async function deleteReservationsBySlots(slots) {
+    const normalized = normalizeSlots(slots);
+    if (normalized.length === 0) return { ok: true, deleted: 0 };
+
+    try {
+      let deleted = 0;
+      if (isCloudMode()) {
+        deleted = await deleteCloudReservationsBySlots(normalized);
+        await refresh();
+      } else {
+        const target = new Set(normalized);
+        const current = getLocalReservations();
+        const kept = current.filter((r) => !target.has(r.slot));
+        deleted = current.length - kept.length;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(kept));
+        _cache = kept;
+      }
+      return { ok: true, deleted };
+    } catch (err) {
+      if (isPermissionDenied(err)) {
+        return { ok: false, error: 'PERMISSION' };
+      }
+      console.error('[PFF] Delete reservations by slots', err);
+      return { ok: false, error: 'NETWORK' };
+    }
+  }
+
   async function clearAll() {
     if (isCloudMode()) {
       await clearCloudReservations();
@@ -419,6 +465,7 @@ const PFFStorage = (function () {
     getReservations,
     getSlots,
     setSlots,
+    deleteReservationsBySlots,
     saveReservation,
     getMyBooking,
     setMyBooking,
