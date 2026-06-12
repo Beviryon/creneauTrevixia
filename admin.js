@@ -48,6 +48,8 @@ const modalContent = document.getElementById('modal-content');
 const modalEmailLink = document.getElementById('modal-email-link');
 const deleteSlotsModal = document.getElementById('delete-slots-modal');
 const deleteSlotsList = document.getElementById('delete-slots-list');
+const deleteSlotsImpactCount = document.getElementById('delete-slots-impact-count');
+const deleteSlotsAck = document.getElementById('delete-slots-ack');
 const deleteSlotsConfirmBtn = document.getElementById('delete-slots-confirm');
 const adminGate = document.getElementById('admin-gate');
 const adminDashboard = document.getElementById('admin-dashboard');
@@ -120,25 +122,31 @@ function closeDeleteSlotsModal(confirmed) {
     deleteSlotsModalResolver = null;
     resolve(Boolean(confirmed));
   }
+  deleteSlotsAck.checked = false;
+  deleteSlotsConfirmBtn.disabled = true;
 }
 
-function requestDeleteSlotsConfirmation(slots) {
+function requestDeleteSlotsConfirmation(impactedReservations) {
+  const impacted = Array.isArray(impactedReservations) ? impactedReservations : [];
   const maxVisible = 6;
+  deleteSlotsImpactCount.textContent = String(impacted.length);
   deleteSlotsList.innerHTML = '';
-  slots.slice(0, maxVisible).forEach((slot) => {
+  impacted.slice(0, maxVisible).forEach((reservation) => {
     const li = document.createElement('li');
-    li.textContent = slot;
+    li.textContent = `${reservation.slot} — ${reservation.fullName} (${reservation.email})`;
     deleteSlotsList.appendChild(li);
   });
-  if (slots.length > maxVisible) {
+  if (impacted.length > maxVisible) {
     const li = document.createElement('li');
-    li.textContent = `…et ${slots.length - maxVisible} autre(s)`;
+    li.textContent = `…et ${impacted.length - maxVisible} autre(s)`;
     deleteSlotsList.appendChild(li);
   }
 
   deleteSlotsModal.hidden = false;
   document.body.classList.add('modal-open');
-  deleteSlotsConfirmBtn.focus();
+  deleteSlotsAck.checked = false;
+  deleteSlotsConfirmBtn.disabled = true;
+  deleteSlotsAck.focus();
 
   return new Promise((resolve) => {
     deleteSlotsModalResolver = resolve;
@@ -386,6 +394,9 @@ function initModal() {
   deleteSlotsModal.querySelectorAll('[data-close-delete-modal]').forEach((el) => {
     el.addEventListener('click', () => closeDeleteSlotsModal(false));
   });
+  deleteSlotsAck.addEventListener('change', () => {
+    deleteSlotsConfirmBtn.disabled = !deleteSlotsAck.checked;
+  });
   deleteSlotsConfirmBtn.addEventListener('click', () => closeDeleteSlotsModal(true));
 
   document.addEventListener('keydown', (e) => {
@@ -463,12 +474,13 @@ async function handleSaveSlots() {
   const reservations = PFFStorage.getReservations();
   const reservedSlots = new Set(reservations.map((r) => r.slot));
   const removedReserved = Array.from(reservedSlots).filter((slot) => !nextSlots.includes(slot));
+  const impactedReservations = reservations.filter((r) => removedReserved.includes(r.slot));
 
   adminSaveSlotsBtn.disabled = true;
   adminSaveSlotsBtn.textContent = 'Enregistrement…';
   try {
     if (removedReserved.length > 0) {
-      const confirmDelete = await requestDeleteSlotsConfirmation(removedReserved);
+      const confirmDelete = await requestDeleteSlotsConfirmation(impactedReservations);
       if (!confirmDelete) {
         showSlotsMessage('Enregistrement annulé.', true);
         return;

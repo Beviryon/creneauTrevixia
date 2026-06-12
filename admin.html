@@ -179,11 +179,18 @@
         <p class="modal-warning__text">
           Les créneaux suivants sont déjà réservés. En confirmant, les réservations associées seront supprimées définitivement.
         </p>
+        <p class="modal-warning__impact">
+          <strong id="delete-slots-impact-count">0</strong> réservation(s) seront supprimées.
+        </p>
         <ul id="delete-slots-list" class="modal-warning__list"></ul>
+        <label class="modal-warning__ack">
+          <input type="checkbox" id="delete-slots-ack">
+          <span>Je confirme la suppression définitive des réservations concernées.</span>
+        </label>
       </div>
       <footer class="modal__footer">
         <button type="button" id="delete-slots-cancel" class="btn btn--ghost btn--sm" data-close-delete-modal>Annuler</button>
-        <button type="button" id="delete-slots-confirm" class="btn btn--primary btn--sm">Oui, supprimer et enregistrer</button>
+        <button type="button" id="delete-slots-confirm" class="btn btn--outline-danger btn--sm" disabled>Oui, supprimer et enregistrer</button>
       </footer>
     </div>
   </div>

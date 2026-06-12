@@ -1042,6 +1042,12 @@ body {
   line-height: 1.5;
 }
 
+.modal-warning__impact {
+  margin: 0 0 0.625rem;
+  font-size: 0.85rem;
+  color: var(--error);
+}
+
 .modal-warning__list {
   margin: 0;
   padding-left: 1.1rem;
@@ -1053,6 +1059,26 @@ body {
   margin-bottom: 0.35rem;
   color: var(--slate-800);
   font-size: 0.85rem;
+}
+
+.modal-warning__ack {
+  margin-top: 0.8rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--slate-700);
+  line-height: 1.4;
+}
+
+.modal-warning__ack input[type="checkbox"] {
+  margin-top: 0.15rem;
+}
+
+.btn--outline-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #fff;
 }
 
 .admin-slots-config__actions {
