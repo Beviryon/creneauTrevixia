@@ -35,6 +35,7 @@ const stickySubmit = document.getElementById('sticky-submit');
 
 let activeDayIndex = 0;
 let dayGroups = [];
+let kpiPulseTimer;
 
 function isMobileView() {
   return window.matchMedia('(max-width: 767px)').matches;
@@ -52,13 +53,31 @@ function hideError() {
 }
 
 function updateAvailabilityUI(reservedCount) {
-  const available = PFFStorage.TOTAL_SLOTS - reservedCount;
-  const pct = (available / PFFStorage.TOTAL_SLOTS) * 100;
+  const total = PFFStorage.TOTAL_SLOTS;
+  const available = total - reservedCount;
+  const pct = total > 0 ? (available / total) * 100 : 0;
+  const fillRate = total > 0 ? Math.round((reservedCount / total) * 100) : 0;
 
   slotsCounter.textContent = `${available} / ${PFFStorage.TOTAL_SLOTS} libres`;
   availabilityFill.style.width = `${pct}%`;
   availabilityProgress.setAttribute('aria-valuenow', String(available));
   availabilityProgress.setAttribute('aria-valuetext', `${available} créneaux disponibles`);
+
+  const heroAvailable = document.getElementById('hero-available-count');
+  const heroBooked = document.getElementById('hero-booked-count');
+  const heroRate = document.getElementById('hero-fill-rate');
+  if (heroAvailable) heroAvailable.textContent = String(available);
+  if (heroBooked) heroBooked.textContent = String(reservedCount);
+  if (heroRate) heroRate.textContent = `${fillRate}%`;
+
+  const kpiCards = document.querySelectorAll('.booking-kpi');
+  if (kpiCards.length > 0) {
+    kpiCards.forEach((el) => el.classList.add('booking-kpi--pulse'));
+    clearTimeout(kpiPulseTimer);
+    kpiPulseTimer = setTimeout(() => {
+      kpiCards.forEach((el) => el.classList.remove('booking-kpi--pulse'));
+    }, 260);
+  }
 }
 
 function updateSelectedPreview(slotValue) {

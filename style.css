@@ -171,6 +171,147 @@ body {
   line-height: 1.4;
 }
 
+.booking-hero {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background:
+    radial-gradient(120% 100% at 0% 0%, #eef2ff 0%, rgba(238, 242, 255, 0) 45%),
+    radial-gradient(120% 100% at 100% 100%, #e0f2fe 0%, rgba(224, 242, 254, 0) 48%),
+    linear-gradient(135deg, #ffffff, #f8fbff);
+  border-color: #dbeafe;
+  box-shadow: 0 8px 30px rgba(37, 99, 235, 0.08);
+}
+
+.booking-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--indigo-600);
+  background: var(--indigo-50);
+  border: 1px solid var(--indigo-100);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+}
+
+.booking-hero .layout__title {
+  margin-top: 0.65rem;
+}
+
+.booking-hero .layout__course {
+  margin-top: 0.5rem;
+}
+
+.booking-hero__meta {
+  margin-top: 0.875rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  list-style: none;
+}
+
+.booking-hero__meta li {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--slate-700);
+  background: var(--slate-100);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+}
+
+.booking-kpis {
+  margin-top: 0.875rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.booking-kpi {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #dbeafe;
+  border-radius: var(--r-md);
+  padding: 0.5rem 0.6rem;
+  transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+}
+
+.booking-kpi__label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.booking-kpi__value {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 1rem;
+  color: var(--slate-900);
+}
+
+.booking-kpi--pulse {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
+}
+
+.booking-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.booking-aside {
+  margin-bottom: 0;
+}
+
+.booking-aside__head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.625rem;
+}
+
+.booking-aside__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.booking-aside__list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: var(--slate-700);
+  font-size: 0.825rem;
+}
+
+.booking-aside__icon {
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--indigo-600);
+  background: var(--indigo-50);
+  border: 1px solid var(--indigo-100);
+}
+
+.booking-aside__icon svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  display: block;
+}
+
 /* --- Panels --- */
 .panel {
   background: var(--surface);
@@ -219,6 +360,7 @@ body {
 
 .panel__step--tips {
   background: var(--indigo-50);
+  color: var(--indigo-600);
   font-size: 1rem;
   width: 2rem;
   height: 2rem;
@@ -1372,7 +1514,7 @@ body.modal-open { overflow: hidden; }
   .topbar__logo { height: 36px; max-width: 160px; }
 
   .layout {
-    max-width: 640px;
+    max-width: 1080px;
     padding: 2rem 1.5rem 2.5rem;
   }
 
@@ -1381,6 +1523,26 @@ body.modal-open { overflow: hidden; }
   }
 
   .layout__title { font-size: 1.75rem; }
+
+  .booking-kpi__value {
+    font-size: 1.125rem;
+  }
+
+  .booking-shell {
+    display: grid;
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
+  }
+
+  .booking-main {
+    min-width: 0;
+  }
+
+  .booking-aside {
+    position: sticky;
+    top: calc(var(--topbar-h) + 1rem);
+  }
 
   .day-tabs { display: none; }
 
@@ -1407,6 +1569,10 @@ body.modal-open { overflow: hidden; }
 }
 
 @media (max-width: 600px) {
+  .booking-kpis {
+    grid-template-columns: 1fr;
+  }
+
   .admin-slots-builder {
     grid-template-columns: 1fr;
   }

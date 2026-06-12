@@ -23,73 +23,133 @@
     </nav>
   </header>
 
-  <main class="layout">
-    <div class="layout__hero">
-      <h1 class="layout__title">Réserver un créneau</h1>
-      <p class="layout__course">Communication Digitale et du Community Management</p>
-    </div>
-
-    <div id="error-message" class="alert alert--error" role="alert" hidden></div>
-
-    <form id="reservation-form" class="booking-form" novalidate>
-      <!-- Étape 1 : Informations -->
-      <section class="panel" aria-labelledby="panel-info">
-        <header class="panel__head">
-          <span class="panel__step" aria-hidden="true">1</span>
-          <h2 id="panel-info" class="panel__title">Vos informations</h2>
-        </header>
-        <div class="panel__body">
-          <div class="form-stack">
-            <div class="form-group">
-              <label for="fullName" class="form-label">Nom complet <span class="required">*</span></label>
-              <input type="text" id="fullName" name="fullName" class="form-input" placeholder="Jean Dupont" autocomplete="name" required>
-            </div>
-            <div class="form-group">
-              <label for="email" class="form-label">Adresse e-mail <span class="required">*</span></label>
-              <input type="email" id="email" name="email" class="form-input" placeholder="jean.dupont@exemple.fr" autocomplete="email" required>
-            </div>
-            <div class="form-group">
-              <label for="brand" class="form-label">Votre marque <span class="required">*</span></label>
-              <input type="text" id="brand" name="brand" class="form-input" placeholder="Ma Marque Fictive" required>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Étape 2 : Créneau -->
-      <section class="panel" aria-labelledby="panel-slots">
-        <header class="panel__head">
-          <span class="panel__step" aria-hidden="true">2</span>
-          <div class="panel__head-text">
-            <h2 id="panel-slots" class="panel__title">Choisissez un créneau</h2>
-            <span id="slots-counter" class="slots-counter" aria-live="polite">24 disponibles</span>
-          </div>
-        </header>
-        <div class="panel__body">
-          <div class="availability-bar" role="progressbar" aria-valuemin="0" aria-valuemax="24" aria-valuenow="24" id="availability-progress">
-            <div class="availability-bar__fill" id="availability-fill"></div>
-          </div>
-
-          <div id="day-tabs" class="day-tabs" role="tablist" aria-label="Jours disponibles"></div>
-
-          <fieldset class="slots-fieldset">
-            <legend class="visually-hidden">Créneaux horaires</legend>
-            <div id="slots-container" class="slot-list" role="radiogroup" aria-label="Créneaux de soutenance"></div>
-          </fieldset>
-        </div>
-      </section>
-
-      <!-- Submit desktop -->
-      <div class="form-actions form-actions--desktop">
-        <div id="selected-preview" class="selected-preview" hidden>
-          <span class="selected-preview__label">Sélection</span>
-          <p id="selected-preview-text" class="selected-preview__value"></p>
-        </div>
-        <button type="submit" class="btn btn--primary btn--lg">
-          Confirmer ma réservation
-        </button>
+  <main class="layout layout--booking">
+    <section class="booking-hero card" aria-label="Présentation">
+      <div class="booking-hero__eyebrow">Session PFF 2026</div>
+      <h1 class="layout__title">Planifier votre passage de soutenance</h1>
+      <p class="layout__course">Communication Digitale et Community Management · Trevixia Academy</p>
+      <div class="booking-kpis" aria-label="Indicateurs de disponibilité">
+        <article class="booking-kpi">
+          <span class="booking-kpi__label">Disponibles</span>
+          <strong id="hero-available-count" class="booking-kpi__value">0</strong>
+        </article>
+        <article class="booking-kpi">
+          <span class="booking-kpi__label">Réservés</span>
+          <strong id="hero-booked-count" class="booking-kpi__value">0</strong>
+        </article>
+        <article class="booking-kpi">
+          <span class="booking-kpi__label">Taux de remplissage</span>
+          <strong id="hero-fill-rate" class="booking-kpi__value">0%</strong>
+        </article>
       </div>
-    </form>
+      <ul class="booking-hero__meta">
+        <li>Validation instantanée</li>
+        <li>Un seul créneau par candidat</li>
+        <li>Confirmation sécurisée</li>
+      </ul>
+    </section>
+
+    <div class="booking-shell">
+      <aside class="booking-aside panel panel--muted" aria-label="Instructions">
+        <header class="booking-aside__head">
+          <span class="panel__step panel__step--tips" aria-hidden="true">i</span>
+          <h2 class="panel__title">Avant de réserver</h2>
+        </header>
+        <ul class="booking-aside__list">
+          <li>
+            <span class="booking-aside__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3 5.5h14v9H3z" stroke="currentColor" stroke-width="1.6" />
+                <path d="M3.5 6l6.5 5 6.5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+            Préparez une adresse e-mail active pour recevoir les échanges.
+          </li>
+          <li>
+            <span class="booking-aside__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="6.5" stroke="currentColor" stroke-width="1.6" />
+                <path d="M10 6.8v3.4l2.3 1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+            Vérifiez les disponibilités en temps réel avant validation.
+          </li>
+          <li>
+            <span class="booking-aside__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3.5 5.5h5l1.2 1.4H16.5v7.6H3.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+            </span>
+            Utilisez un nom et une marque identiques à votre dossier.
+          </li>
+        </ul>
+      </aside>
+
+      <section class="booking-main">
+        <div id="error-message" class="alert alert--error" role="alert" hidden></div>
+
+        <form id="reservation-form" class="booking-form" novalidate>
+          <!-- Étape 1 : Informations -->
+          <section class="panel" aria-labelledby="panel-info">
+            <header class="panel__head">
+              <span class="panel__step" aria-hidden="true">1</span>
+              <h2 id="panel-info" class="panel__title">Informations candidat</h2>
+            </header>
+            <div class="panel__body">
+              <div class="form-stack">
+                <div class="form-group">
+                  <label for="fullName" class="form-label">Nom complet <span class="required">*</span></label>
+                  <input type="text" id="fullName" name="fullName" class="form-input" placeholder="Jean Dupont" autocomplete="name" required>
+                </div>
+                <div class="form-group">
+                  <label for="email" class="form-label">Adresse e-mail <span class="required">*</span></label>
+                  <input type="email" id="email" name="email" class="form-input" placeholder="jean.dupont@exemple.fr" autocomplete="email" required>
+                </div>
+                <div class="form-group">
+                  <label for="brand" class="form-label">Marque fictive <span class="required">*</span></label>
+                  <input type="text" id="brand" name="brand" class="form-input" placeholder="Ma Marque Fictive" required>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Étape 2 : Créneau -->
+          <section class="panel" aria-labelledby="panel-slots">
+            <header class="panel__head">
+              <span class="panel__step" aria-hidden="true">2</span>
+              <div class="panel__head-text">
+                <h2 id="panel-slots" class="panel__title">Choix du créneau</h2>
+                <span id="slots-counter" class="slots-counter" aria-live="polite">24 disponibles</span>
+              </div>
+            </header>
+            <div class="panel__body">
+              <p class="panel__note">Les créneaux affichés en vert sont encore disponibles.</p>
+              <div class="availability-bar" role="progressbar" aria-valuemin="0" aria-valuemax="24" aria-valuenow="24" id="availability-progress">
+                <div class="availability-bar__fill" id="availability-fill"></div>
+              </div>
+
+              <div id="day-tabs" class="day-tabs" role="tablist" aria-label="Jours disponibles"></div>
+
+              <fieldset class="slots-fieldset">
+                <legend class="visually-hidden">Créneaux horaires</legend>
+                <div id="slots-container" class="slot-list" role="radiogroup" aria-label="Créneaux de soutenance"></div>
+              </fieldset>
+            </div>
+          </section>
+
+          <!-- Submit desktop -->
+          <div class="form-actions form-actions--desktop">
+            <div id="selected-preview" class="selected-preview" hidden>
+              <span class="selected-preview__label">Sélection</span>
+              <p id="selected-preview-text" class="selected-preview__value"></p>
+            </div>
+            <button type="submit" class="btn btn--primary btn--lg">
+              Confirmer ma réservation
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
   </main>
 
   <!-- Barre fixe mobile -->
