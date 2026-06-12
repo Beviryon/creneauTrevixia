@@ -95,6 +95,10 @@ const PFFStorage = (function () {
     return _db;
   }
 
+  function isPermissionDenied(err) {
+    return err && (err.code === 'permission-denied' || String(err.message || '').includes('Missing or insufficient permissions'));
+  }
+
   function normalizeSlots(slots) {
     if (!Array.isArray(slots)) return [];
     const normalized = slots
@@ -213,12 +217,20 @@ const PFFStorage = (function () {
   }
 
   async function fetchCloudSlots() {
-    const db = getDb();
-    const doc = await db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC_ID).get();
-    if (!doc.exists) return DEFAULT_SLOTS.slice();
-    const data = doc.data() || {};
-    const slots = normalizeSlots(data.slots);
-    return slots.length > 0 ? slots : DEFAULT_SLOTS.slice();
+    try {
+      const db = getDb();
+      const doc = await db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC_ID).get();
+      if (!doc.exists) return DEFAULT_SLOTS.slice();
+      const data = doc.data() || {};
+      const slots = normalizeSlots(data.slots);
+      return slots.length > 0 ? slots : DEFAULT_SLOTS.slice();
+    } catch (err) {
+      if (isPermissionDenied(err)) {
+        console.warn('[PFF] Permissions Firestore insuffisantes pour lire meta/slots_config, fallback sur les créneaux par défaut.');
+        return DEFAULT_SLOTS.slice();
+      }
+      throw err;
+    }
   }
 
   async function saveCloudSlots(slots) {
@@ -341,10 +353,18 @@ const PFFStorage = (function () {
       return { ok: false, error: 'EMPTY_SLOTS' };
     }
 
-    if (isCloudMode()) {
-      await saveCloudSlots(normalized);
-    } else {
-      saveLocalSlots(normalized);
+    try {
+      if (isCloudMode()) {
+        await saveCloudSlots(normalized);
+      } else {
+        saveLocalSlots(normalized);
+      }
+    } catch (err) {
+      if (isPermissionDenied(err)) {
+        return { ok: false, error: 'PERMISSION' };
+      }
+      console.error('[PFF] Save slots', err);
+      return { ok: false, error: 'NETWORK' };
     }
 
     _slots = normalized;

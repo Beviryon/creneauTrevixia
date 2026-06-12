@@ -298,7 +298,11 @@ async function handleSaveSlots() {
   try {
     const result = await PFFStorage.setSlots(nextSlots);
     if (!result.ok) {
-      showSlotsMessage('Impossible d\'enregistrer les créneaux.', true);
+      if (result.error === 'PERMISSION') {
+        showSlotsMessage('Permissions Firestore insuffisantes. Publiez les règles mises à jour dans firebase/firestore.rules.', true);
+      } else {
+        showSlotsMessage('Impossible d\'enregistrer les créneaux.', true);
+      }
       return;
     }
     await render();

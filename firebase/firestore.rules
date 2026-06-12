@@ -23,6 +23,18 @@ service cloud.firestore {
       allow delete: if true;
     }
 
+    // Configuration des créneaux (pilotée depuis l'admin)
+    match /meta/slots_config {
+      // Lecture publique pour afficher le planning côté candidat
+      allow read: if true;
+
+      // Écriture uniquement pour un utilisateur connecté (admin côté app)
+      allow write: if request.auth != null
+        && request.resource.data.keys().hasAll(['slots'])
+        && request.resource.data.slots is list
+        && request.resource.data.slots.size() > 0;
+    }
+
     // Tout le reste : interdit
     match /{document=**} {
       allow read, write: if false;
