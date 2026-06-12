@@ -933,16 +933,116 @@ body {
   color: var(--muted);
 }
 
-.admin-slots-config__textarea {
-  width: 100%;
-  min-height: 220px;
-  resize: vertical;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+.admin-slots-builder {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr auto;
+  gap: 0.625rem;
+  align-items: end;
   margin-bottom: 0.875rem;
+}
+
+.admin-slots-builder .form-group {
+  margin: 0;
+}
+
+.admin-slots-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.admin-slots-list__title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--slate-700);
+}
+
+.admin-slots-list__count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--indigo-600);
+  background: var(--indigo-50);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+}
+
+.admin-slots-list {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--slate-50);
+  max-height: 340px;
+  overflow: auto;
+  margin-bottom: 0.875rem;
+}
+
+.admin-slots-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-slots-list__item:last-child {
+  border-bottom: none;
+}
+
+.admin-slots-list__meta {
+  min-width: 0;
+}
+
+.admin-slots-list__day,
+.admin-slots-list__time {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.admin-slots-list__day {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.admin-slots-list__time {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--slate-800);
+}
+
+.admin-slots-list__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-slots-list__badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--error);
+  background: var(--error-bg);
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+  white-space: nowrap;
+}
+
+.admin-slots-list__remove[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-slots-list__empty {
+  margin: 0;
+  padding: 1rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--muted);
 }
 
 .admin-slots-config__actions {
   display: flex;
+  gap: 0.5rem;
   justify-content: flex-end;
 }
 
@@ -1255,7 +1355,35 @@ body.modal-open { overflow: hidden; }
   .stats-grid { gap: 1rem; }
 }
 
+@media (max-width: 980px) {
+  .admin-slots-builder {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-slots-builder button[type="submit"] {
+    grid-column: span 2;
+  }
+}
+
 @media (max-width: 600px) {
+  .admin-slots-builder {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-slots-builder button[type="submit"] {
+    grid-column: span 1;
+  }
+
+  .admin-slots-list__item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-slots-config__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
   .stats-grid { grid-template-columns: 1fr; }
   .ticket__row { grid-template-columns: 1fr; }
   .modal-detail__row { grid-template-columns: 1fr; }

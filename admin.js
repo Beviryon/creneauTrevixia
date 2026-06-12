@@ -51,9 +51,17 @@ const adminDashboard = document.getElementById('admin-dashboard');
 const adminLoginForm = document.getElementById('admin-login-form');
 const adminLoginError = document.getElementById('admin-login-error');
 const adminUserEmail = document.getElementById('admin-user-email');
-const adminSlotsInput = document.getElementById('admin-slots-input');
+const adminSlotBuilderForm = document.getElementById('admin-slot-builder-form');
+const adminSlotDate = document.getElementById('admin-slot-date');
+const adminSlotStart = document.getElementById('admin-slot-start');
+const adminSlotEnd = document.getElementById('admin-slot-end');
+const adminSlotsList = document.getElementById('admin-slots-list');
+const adminSlotsCount = document.getElementById('admin-slots-count');
 const adminSlotsMessage = document.getElementById('admin-slots-message');
 const adminSaveSlotsBtn = document.getElementById('admin-save-slots');
+const adminClearSlotsBtn = document.getElementById('admin-clear-slots');
+
+let adminSlotsDraft = [];
 
 function openDetailModal(reservation) {
   const parsed = PFFStorage.parseSlot(reservation.slot);
@@ -161,23 +169,95 @@ function renderSlotsGrid() {
   });
 }
 
-function parseSlotsInput(value) {
-  const rows = value
-    .split(/\r?\n/)
-    .map((row) => row.trim())
-    .filter(Boolean);
-  return Array.from(new Set(rows));
-}
-
 function showSlotsMessage(message, isError) {
   adminSlotsMessage.textContent = message;
   adminSlotsMessage.hidden = false;
   adminSlotsMessage.className = `alert ${isError ? 'alert--error' : 'alert--success'}`;
 }
 
+function normalizeSlots(slots) {
+  const list = slots
+    .map((slot) => String(slot || '').trim())
+    .filter(Boolean);
+  return Array.from(new Set(list));
+}
+
+function pad2(value) {
+  return String(value).padStart(2, '0');
+}
+
+function toHourLabel(value) {
+  const [hour, minute] = String(value).split(':');
+  return `${pad2(hour)}h${pad2(minute)}`;
+}
+
+function capitalize(value) {
+  if (!value) return '';
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function buildSlotLabel(dateValue, startValue, endValue) {
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  const weekday = capitalize(date.toLocaleDateString('fr-FR', { weekday: 'long' }));
+  const month = capitalize(date.toLocaleDateString('fr-FR', { month: 'long' }));
+  const day = date.getDate() === 1 ? '1er' : String(date.getDate());
+  return `${weekday} ${day} ${month} – ${toHourLabel(startValue)} à ${toHourLabel(endValue)}`;
+}
+
+function getReservedSlotsSet() {
+  return new Set(PFFStorage.getReservations().map((r) => r.slot));
+}
+
+function renderSlotsDraftList() {
+  const reservedSlots = getReservedSlotsSet();
+  adminSlotsCount.textContent = String(adminSlotsDraft.length);
+  adminSlotsList.innerHTML = '';
+
+  if (adminSlotsDraft.length === 0) {
+    adminSlotsList.innerHTML = '<p class="admin-slots-list__empty">Aucun créneau pour le moment.</p>';
+    return;
+  }
+
+  adminSlotsDraft.forEach((slot) => {
+    const parsed = PFFStorage.parseSlot(slot);
+    const isReserved = reservedSlots.has(slot);
+    const row = document.createElement('article');
+    row.className = 'admin-slots-list__item';
+    row.innerHTML = `
+      <div class="admin-slots-list__meta">
+        <p class="admin-slots-list__day">${escapeHtml(parsed.day)}</p>
+        <p class="admin-slots-list__time">${escapeHtml(parsed.start)} – ${escapeHtml(parsed.end)}</p>
+      </div>
+      <div class="admin-slots-list__actions">
+        ${isReserved ? '<span class="admin-slots-list__badge">Réservé</span>' : ''}
+        <button type="button" class="btn btn--ghost btn--sm admin-slots-list__remove" data-slot="${escapeHtml(slot)}" ${isReserved ? 'disabled aria-disabled="true" title="Créneau réservé"' : ''}>
+          Supprimer
+        </button>
+      </div>
+    `;
+
+    if (!isReserved) {
+      row.querySelector('.admin-slots-list__remove').addEventListener('click', () => {
+        adminSlotsDraft = adminSlotsDraft.filter((value) => value !== slot);
+        renderSlotsDraftList();
+        showSlotsMessage('Créneau retiré de la liste.', false);
+      });
+    }
+
+    adminSlotsList.appendChild(row);
+  });
+}
+
 function renderSlotsEditor() {
-  adminSlotsInput.value = PFFStorage.getSlots().join('\n');
+  adminSlotsDraft = normalizeSlots(PFFStorage.getSlots());
+  renderSlotsDraftList();
   adminSlotsMessage.hidden = true;
+  if (!adminSlotDate.value) {
+    adminSlotDate.value = new Date().toISOString().slice(0, 10);
+  }
+  if (!adminSlotStart.value) adminSlotStart.value = '19:30';
+  if (!adminSlotEnd.value) adminSlotEnd.value = '20:05';
 }
 
 function renderTable() {
@@ -278,8 +358,71 @@ async function render() {
   renderSlotsEditor();
 }
 
+function handleSlotBuilderSubmit(event) {
+  event.preventDefault();
+  adminSlotsMessage.hidden = true;
+
+  const dateValue = adminSlotDate.value;
+  const startValue = adminSlotStart.value;
+  const endValue = adminSlotEnd.value;
+
+  if (!dateValue || !startValue || !endValue) {
+    showSlotsMessage('Complétez date, heure de début et heure de fin.', true);
+    return;
+  }
+
+  if (startValue >= endValue) {
+    showSlotsMessage('L\'heure de fin doit être après l\'heure de début.', true);
+    return;
+  }
+
+  const slotLabel = buildSlotLabel(dateValue, startValue, endValue);
+  if (!slotLabel) {
+    showSlotsMessage('Date invalide.', true);
+    return;
+  }
+
+  if (adminSlotsDraft.includes(slotLabel)) {
+    showSlotsMessage('Ce créneau existe déjà dans la liste.', true);
+    return;
+  }
+
+  adminSlotsDraft = [...adminSlotsDraft, slotLabel];
+  renderSlotsDraftList();
+  showSlotsMessage('Créneau ajouté.', false);
+
+  // Conserve la date pour accélérer la saisie en série.
+  adminSlotStart.value = '';
+  adminSlotEnd.value = '';
+  adminSlotStart.focus();
+}
+
+function handleClearSlots() {
+  const reservedSlots = getReservedSlotsSet();
+  if (adminSlotsDraft.length === 0) {
+    showSlotsMessage('La liste est déjà vide.', true);
+    return;
+  }
+
+  if (reservedSlots.size > 0) {
+    const reservedOnly = adminSlotsDraft.filter((slot) => reservedSlots.has(slot));
+    if (reservedOnly.length === adminSlotsDraft.length) {
+      showSlotsMessage('Tous les créneaux actuels sont réservés, aucun créneau ne peut être retiré.', true);
+      return;
+    }
+    adminSlotsDraft = reservedOnly;
+    renderSlotsDraftList();
+    showSlotsMessage('Seuls les créneaux réservés ont été conservés.', false);
+    return;
+  }
+
+  adminSlotsDraft = [];
+  renderSlotsDraftList();
+  showSlotsMessage('Tous les créneaux ont été retirés de la liste.', false);
+}
+
 async function handleSaveSlots() {
-  const nextSlots = parseSlotsInput(adminSlotsInput.value);
+  const nextSlots = normalizeSlots(adminSlotsDraft);
   if (nextSlots.length === 0) {
     showSlotsMessage('Ajoutez au moins un créneau.', true);
     return;
@@ -382,5 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('admin-logout').addEventListener('click', handleAdminLogout);
   document.getElementById('export-csv').addEventListener('click', exportCSV);
   document.getElementById('debug-reset').addEventListener('click', handleDebugReset);
+  adminSlotBuilderForm.addEventListener('submit', handleSlotBuilderSubmit);
+  adminClearSlotsBtn.addEventListener('click', handleClearSlots);
   adminSaveSlotsBtn.addEventListener('click', handleSaveSlots);
 });

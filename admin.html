@@ -109,16 +109,33 @@
       <div class="admin-section__header">
         <h2 id="slots-config-title" class="card__title">Configuration des créneaux</h2>
       </div>
-      <p class="admin-slots-config__hint">Un créneau par ligne, format recommandé : <em>Jour Date – HHhMM à HHhMM</em>.</p>
-      <label for="admin-slots-input" class="form-label">Liste des créneaux</label>
-      <textarea
-        id="admin-slots-input"
-        class="form-input admin-slots-config__textarea"
-        rows="10"
-        placeholder="Exemple&#10;Lundi 10 Juin – 19h30 à 20h05&#10;Lundi 10 Juin – 20h10 à 20h45"
-      ></textarea>
+      <p class="admin-slots-config__hint">Ajoutez des créneaux avec le formulaire guidé, puis enregistrez la liste complète.</p>
+
+      <form id="admin-slot-builder-form" class="admin-slots-builder" novalidate>
+        <div class="form-group">
+          <label for="admin-slot-date" class="form-label">Date</label>
+          <input type="date" id="admin-slot-date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="admin-slot-start" class="form-label">Heure début</label>
+          <input type="time" id="admin-slot-start" class="form-input" step="300" required>
+        </div>
+        <div class="form-group">
+          <label for="admin-slot-end" class="form-label">Heure fin</label>
+          <input type="time" id="admin-slot-end" class="form-input" step="300" required>
+        </div>
+        <button type="submit" id="admin-add-slot" class="btn btn--ghost btn--sm">Ajouter</button>
+      </form>
+
+      <div class="admin-slots-list__header">
+        <p class="admin-slots-list__title">Créneaux à publier</p>
+        <span id="admin-slots-count" class="admin-slots-list__count">0</span>
+      </div>
+      <div id="admin-slots-list" class="admin-slots-list" aria-live="polite"></div>
+
       <p id="admin-slots-message" class="alert" hidden role="status"></p>
       <div class="admin-slots-config__actions">
+        <button type="button" id="admin-clear-slots" class="btn btn--ghost btn--sm">Tout vider</button>
         <button type="button" id="admin-save-slots" class="btn btn--primary btn--sm">Enregistrer les créneaux</button>
       </div>
     </section>
